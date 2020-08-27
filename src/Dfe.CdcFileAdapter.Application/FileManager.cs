@@ -13,17 +13,24 @@
     /// </summary>
     public class FileManager : IFileManager
     {
+        private readonly IFileStorageAdapter fileStorageAdapter;
         private readonly ILoggerProvider loggerProvider;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="FileManager" />
         /// class.
         /// </summary>
+        /// <param name="fileStorageAdapter">
+        /// An instance of type <see cref="IFileStorageAdapter" />.
+        /// </param>
         /// <param name="loggerProvider">
         /// An instance of type <see cref="ILoggerProvider" />.
         /// </param>
-        public FileManager(ILoggerProvider loggerProvider)
+        public FileManager(
+            IFileStorageAdapter fileStorageAdapter,
+            ILoggerProvider loggerProvider)
         {
+            this.fileStorageAdapter = fileStorageAdapter;
             this.loggerProvider = loggerProvider;
         }
 
@@ -32,34 +39,38 @@
             "Microsoft.Usage",
             "CA1054",
             Justification = "'URN', in this instance, does not refer to a URI.")]
-        public Task<File> GetFile(
+        public async Task<File> GetFile(
             string urn,
             string type,
             CancellationToken cancellationToken)
         {
-            // TODO: Just stubbed out for now - actually call storage.
-            File file = null;
+            File toReturn = null;
 
-            if (type == "report")
+            this.loggerProvider.Debug(
+                $"Pulling {nameof(File)} with {nameof(urn)} = \"{urn}\" and " +
+                $"{nameof(type)} = \"{type}\" from the underlying storage...");
+
+            toReturn =
+                await this.fileStorageAdapter.GetFile(
+                    urn,
+                    type,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (toReturn != null)
             {
-                this.loggerProvider.Debug("Creating stub file...");
-
-                file = new File()
-                {
-                    ContentType = "text/plain",
-                    ContentBytes = Convert.FromBase64String("VGhpcyBpcyBzb21lIHRlc3QgZGF0YS4="),
-                };
-
-                this.loggerProvider.Info($"Returning stub {file}.");
+                this.loggerProvider.Info(
+                    $"{nameof(File)} pulled from storage: {toReturn}.");
             }
             else
             {
                 this.loggerProvider.Warning(
-                    $"Could not \"find\" a file of type \"{type}\". " +
-                    $"Returning null.");
+                    $"Could not find {nameof(File)} with {nameof(urn)} = " +
+                    $"\"{urn}\" and {nameof(type)} = \"{type}\" in the " +
+                    $"underlying storage.");
             }
 
-            return Task.FromResult(file);
+            return toReturn;
         }
     }
 }
