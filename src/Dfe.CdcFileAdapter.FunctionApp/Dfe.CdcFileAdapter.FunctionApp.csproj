@@ -9,6 +9,7 @@
   <ItemGroup>
     
     <!-- Microsoft -->
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.3" />
 
     <!-- Development/Non-Runtime -->
@@ -30,6 +31,10 @@
   <PropertyGroup>
     <CodeAnalysisRuleSet>..\ca.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Dfe.CdcFileAdapter.Application\Dfe.CdcFileAdapter.Application.csproj" />
+  </ItemGroup>
   
   <ItemGroup>
     <None Update="host.json">
