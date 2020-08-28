@@ -5,7 +5,7 @@
     <base />
     
     <set-header name="X-Functions-Key" exists-action="skip">
-      <value>{{ccfa-function-app-key}}</value>
+      <value>{{cdcfa-function-app-key}}</value>
     </set-header>
     
   </inbound>
