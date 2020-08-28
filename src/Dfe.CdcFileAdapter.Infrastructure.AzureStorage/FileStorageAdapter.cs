@@ -72,7 +72,7 @@
             "Microsoft.Usage",
             "CA1054",
             Justification = "'URN', in this instance, does not refer to a URI.")]
-        public async Task<File> GetFile(
+        public async Task<File> GetFileAsync(
             string urn,
             string type,
             CancellationToken cancellationToken)
@@ -140,8 +140,14 @@
 
                 byte[] contentBytes = new byte[length];
 
-                await cloudBlob.DownloadToByteArrayAsync(contentBytes, 0)
-                    .ConfigureAwait(false);
+                await cloudBlob.DownloadToByteArrayAsync(
+                    contentBytes,
+                    0,
+                    AccessCondition.GenerateEmptyCondition(),
+                    this.blobRequestOptions,
+                    this.operationContext,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
                 this.loggerProvider.Info(
                     $"{length} byte(s) downloaded. Stuffing results into a " +

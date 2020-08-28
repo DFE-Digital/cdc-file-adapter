@@ -58,7 +58,7 @@
             "CA1054",
             Justification = "'URN', in this instance, does not refer to a URI.")]
         [FunctionName(nameof(GetFile))]
-        public async Task<IActionResult> Run(
+        public async Task<IActionResult> RunAsync(
             [HttpTrigger(AuthorizationLevel.Function, "GET", Route = "cdc-file/{urn}")]
             HttpRequest httpRequest,
             string urn,
@@ -84,7 +84,7 @@
                 this.loggerProvider.Debug($"{nameof(type)} = \"{type}\"");
 
                 Domain.Models.File file =
-                    await this.fileManager.GetFile(
+                    await this.fileManager.GetFileAsync(
                         urn,
                         type,
                         cancellationToken)
@@ -94,7 +94,7 @@
                 {
                     this.loggerProvider.Info(
                         $"The method " +
-                        $"{nameof(IFileManager)}.{nameof(IFileManager.GetFile)} " +
+                        $"{nameof(IFileManager)}.{nameof(IFileManager.GetFileAsync)} " +
                         $"method returned {file} for {nameof(urn)} = " +
                         $"\"{urn}\" and {nameof(type)} = \"{type}\" - " +
                         $"returning with a {nameof(FileContentResult)}.");
@@ -110,7 +110,7 @@
                 {
                     this.loggerProvider.Warning(
                         $"The method " +
-                        $"{nameof(IFileManager)}.{nameof(IFileManager.GetFile)} " +
+                        $"{nameof(IFileManager)}.{nameof(IFileManager.GetFileAsync)} " +
                         $"method returned null for {nameof(urn)} = " +
                         $"\"{urn}\" and {nameof(type)} = \"{type}\" - " +
                         $"returning {nameof(NotFoundResult)}.");

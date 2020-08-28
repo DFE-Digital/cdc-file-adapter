@@ -39,7 +39,7 @@
             "Microsoft.Usage",
             "CA1054",
             Justification = "'URN', in this instance, does not refer to a URI.")]
-        public async Task<File> GetFile(
+        public async Task<File> GetFileAsync(
             string urn,
             string type,
             CancellationToken cancellationToken)
@@ -51,7 +51,7 @@
                 $"{nameof(type)} = \"{type}\" from the underlying storage...");
 
             toReturn =
-                await this.fileStorageAdapter.GetFile(
+                await this.fileStorageAdapter.GetFileAsync(
                     urn,
                     type,
                     cancellationToken)

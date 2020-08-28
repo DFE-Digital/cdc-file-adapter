@@ -31,7 +31,7 @@
             "Microsoft.Usage",
             "CA1054",
             Justification = "'URN', in this instance, does not refer to a URI.")]
-        Task<File> GetFile(
+        Task<File> GetFileAsync(
             string urn,
             string type,
             CancellationToken cancellationToken);
