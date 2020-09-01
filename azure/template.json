@@ -240,7 +240,7 @@
 
             {
               "name": "FileStorageConnectionString",
-              "value": "[concat(variables('storageAccountConnStr02'), listKeys(variables('storageAccountId01'), '2015-05-01-preview').key1)]"
+              "value": "[concat(variables('storageAccountConnStr02'), listKeys(variables('storageAccountId02'), '2015-05-01-preview').key1)]"
             },
             {
               "name": "FileStorageContainerName",
