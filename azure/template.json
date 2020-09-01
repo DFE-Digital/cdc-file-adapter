@@ -69,9 +69,13 @@
     "appInsightsName": "[concat(variables('appNamePrefix'), '-ai-01')]",
     "appInsightsId": "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
 
-    "storageAccountName": "[concat(variables('namePrefix'), parameters('appName'), 'sa01')]",
-    "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-    "storageAccountConnStr": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=')]",
+    "storageAccountName01": "[concat(variables('namePrefix'), parameters('appName'), 'sa01')]",
+    "storageAccountId01": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName01'))]",
+    "storageAccountConnStr01": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName01'), ';AccountKey=')]",
+
+    "storageAccountName02": "[concat(variables('namePrefix'), parameters('appName'), 'sa02')]",
+    "storageAccountId02": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName02'))]",
+    "storageAccountConnStr02": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName02'), ';AccountKey=')]",
 
     "corePrefix": "[concat(parameters('serviceIdentifier'), parameters('environment'), parameters('coreResourceGroupEnvironmentInstance'), '-core')]",
     "vNetName": "[concat(concat(variables('corePrefix'), '-vn-'), parameters('vNetInstance'))]",
@@ -120,7 +124,7 @@
 
     {
       "apiVersion": "2019-06-01",
-      "name": "[variables('storageAccountName')]",
+      "name": "[variables('storageAccountName01')]",
       "type": "Microsoft.Storage/storageAccounts",
       "location": "[resourceGroup().location]",
       "tags": {
@@ -148,6 +152,45 @@
         "accessTier": "Hot"
       }
     },
+    {
+      "apiVersion": "2019-06-01",
+      "name": "[variables('storageAccountName02')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "environment": "[parameters('environmentName')]",
+        "app": "[parameters('appName')]"
+      },
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "networkAcls": {
+          "bypass": "none",
+          "virtualNetworkRules": [
+            {
+              "id": "[variables('subnetId')]"
+            }
+          ],
+          "defaultAction": "Deny"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "enabled": true
+            },
+            "blob": {
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "accessTier": "Hot"
+      }
+    },
 
     {
       "apiVersion": "2018-11-01",
@@ -157,7 +200,8 @@
       "dependsOn": [
         "[variables('servicePlanId')]",
         "[variables('appInsightsId')]",
-        "[variables('storageAccountId')]"
+        "[variables('storageAccountId01')]",
+        "[variables('storageAccountId02')]"
       ],
       "tags": {
         "environment": "[parameters('environmentName')]",
@@ -175,15 +219,15 @@
             },
             {
               "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat(variables('storageAccountConnStr'), listKeys(variables('storageAccountId'), '2015-05-01-preview').key1)]"
+              "value": "[concat(variables('storageAccountConnStr01'), listKeys(variables('storageAccountId01'), '2015-05-01-preview').key1)]"
             },
             {
               "name": "AzureWebJobsDashboard",
-              "value": "[concat(variables('storageAccountConnStr'), listKeys(variables('storageAccountId'), '2015-05-01-preview').key1)]"
+              "value": "[concat(variables('storageAccountConnStr01'), listKeys(variables('storageAccountId01'), '2015-05-01-preview').key1)]"
             },
             {
               "name": "AzureWebJobsStorage",
-              "value": "[concat(variables('storageAccountConnStr'), listKeys(variables('storageAccountId'), '2015-05-01-preview').key1)]"
+              "value": "[concat(variables('storageAccountConnStr01'), listKeys(variables('storageAccountId01'), '2015-05-01-preview').key1)]"
             },
             {
               "name": "WEBSITE_CONTENTSHARE",
@@ -204,7 +248,7 @@
 
             {
               "name": "FileStorageConnectionString",
-              "value": "[concat(variables('storageAccountConnStr'), listKeys(variables('storageAccountId'), '2015-05-01-preview').key1)]"
+              "value": "[concat(variables('storageAccountConnStr02'), listKeys(variables('storageAccountId02'), '2015-05-01-preview').key1)]"
             },
             {
               "name": "FileStorageContainerName",
@@ -226,23 +270,21 @@
       },
       "identity": {
         "type": "SystemAssigned"
-      } //,
-      // "resources": [
-      //   {
-      //     "apiVersion": "2016-08-01",
-      //     "type": "Microsoft.Web/sites/networkConfig",
-      //     "name": "[concat(variables('functionAppName'), '/VirtualNetwork')]",
-      //     "location": "[resourceGroup().location]",
-      //     "dependsOn": [
-      //       "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
-      //     ],
-      //     "properties": {
-      //       "subnetResourceId": "[variables('subnetId')]"
-      //     }
-      //   }
-      // ]
-      // NOTE: The above needs commenting out, once CIP have provisioned the
-      //       required VNet/subnets.
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites/networkConfig",
+          "name": "[concat(variables('functionAppName'), '/VirtualNetwork')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Web/sites/', variables('functionAppName'))]"
+          ],
+          "properties": {
+            "subnetResourceId": "[variables('subnetId')]"
+          }
+        }
+      ]
     }
   ],
   "outputs": {
