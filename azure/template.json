@@ -179,6 +179,7 @@
           },
           "keySource": "Microsoft.Storage",
           "networkAcls": {
+            "bypass": "none",
             "virtualNetworkRules": [
               {
                 "id": "[variables('subnetId')]"
