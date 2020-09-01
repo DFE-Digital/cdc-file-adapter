@@ -167,6 +167,15 @@
       },
       "kind": "StorageV2",
       "properties": {
+        "networkAcls": {
+          "bypass": "none",
+          "virtualNetworkRules": [
+            {
+              "id": "[variables('subnetId')]"
+            }
+          ],
+          "defaultAction": "Deny"
+        },
         "supportsHttpsTrafficOnly": true,
         "encryption": {
           "services": {
@@ -177,16 +186,7 @@
               "enabled": true
             }
           },
-          "keySource": "Microsoft.Storage",
-          "networkAcls": {
-            "bypass": "none",
-            "virtualNetworkRules": [
-              {
-                "id": "[variables('subnetId')]"
-              }
-            ],
-            "defaultAction": "Deny"
-          }
+          "keySource": "Microsoft.Storage"
         },
         "accessTier": "Hot"
       }
