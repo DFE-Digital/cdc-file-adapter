@@ -152,7 +152,6 @@
         "accessTier": "Hot"
       }
     },
-
     {
       "apiVersion": "2019-06-01",
       "name": "[variables('storageAccountName02')]",
@@ -178,7 +177,15 @@
               "enabled": true
             }
           },
-          "keySource": "Microsoft.Storage"
+          "keySource": "Microsoft.Storage",
+          "networkAcls": {
+            "virtualNetworkRules": [
+              {
+                "id": "[variables('subnetId')]"
+              }
+            ],
+            "defaultAction": "Deny"
+          }
         },
         "accessTier": "Hot"
       }
