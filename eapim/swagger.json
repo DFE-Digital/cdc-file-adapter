@@ -1,0 +1,64 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "CDC File Adapter",
+    "version": "1.0",
+    "description": "Serves up CDC files, based on the URN and the type."
+  },
+  "basePath": "/api",
+  "host": "__function_app_host__",
+  "paths": {
+    "/cdc-file/{urn}": {
+      "get": {
+        "description": "Accepts a urn value, and a type. Returns the requested value, or returns a 404.",
+        "operationId": "GetFile",
+        "parameters": [
+          {
+            "in": "header",
+            "type": "string",
+            "name": "Authorization",
+            "description": "Bearer token authorization.",
+            "required": true
+          },
+          {
+            "in": "path",
+            "type": "string",
+            "name": "urn",
+            "description": "A Unique Reference Number (URN).",
+            "required": true
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "type",
+            "description": "A file type, predefined. Usually something like \"report\" or \"site-plan\".",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file was found, and returned in the body of the response."
+          },
+          "404": {
+            "description": "The file could not be found."
+          },
+          "500": {
+            "description": "An unexpected error has occurred - please get in touch with us so we can check our logs!"
+          }
+        }
+      }
+    },
+    "/HeartBeat": {
+      "get": {
+        "description": "Standard diagnostics method, used to test the health of the facade's underlying system.",
+        "operationId": "heart-beat",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The standard/only response from the method."
+          }
+        }
+      }
+    }
+  }
+}
