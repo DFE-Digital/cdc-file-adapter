@@ -26,10 +26,11 @@
         public void Arrange()
         {
             this.mockFileManager = new Mock<IFileManager>();
+
             Mock<ILoggerProvider> mockLoggerProvider = new Mock<ILoggerProvider>();
 
             this.getFile = new GetFile(
-                mockFileManager.Object,
+                this.mockFileManager.Object,
                 mockLoggerProvider.Object);
         }
 
