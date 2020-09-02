@@ -7,9 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.CdcFileAdapter.Function
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.CdcFileAdapter.Application", "Dfe.CdcFileAdapter.Application\Dfe.CdcFileAdapter.Application.csproj", "{7248AA1B-2819-42DA-B5A6-F02E4CFA2A88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dfe.CdcFileAdapter.Domain", "Dfe.CdcFileAdapter.Domain\Dfe.CdcFileAdapter.Domain.csproj", "{E849FD20-7D75-4D55-AF33-39FD4A62F6A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.CdcFileAdapter.Domain", "Dfe.CdcFileAdapter.Domain\Dfe.CdcFileAdapter.Domain.csproj", "{E849FD20-7D75-4D55-AF33-39FD4A62F6A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dfe.CdcFileAdapter.Infrastructure.AzureStorage", "Dfe.CdcFileAdapter.Infrastructure.AzureStorage\Dfe.CdcFileAdapter.Infrastructure.AzureStorage.csproj", "{CEE44843-364E-465A-B8CD-A8DF06D12B8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.CdcFileAdapter.Infrastructure.AzureStorage", "Dfe.CdcFileAdapter.Infrastructure.AzureStorage\Dfe.CdcFileAdapter.Infrastructure.AzureStorage.csproj", "{CEE44843-364E-465A-B8CD-A8DF06D12B8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dfe.CdcFileAdapter.FunctionApp.UnitTests", "Dfe.CdcFileAdapter.FunctionApp.UnitTests\Dfe.CdcFileAdapter.FunctionApp.UnitTests.csproj", "{C899D14C-5EE4-43C8-B967-D9FC310DA6CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dfe.CdcFileAdapter.Application.UnitTests", "Dfe.CdcFileAdapter.Application.UnitTests\Dfe.CdcFileAdapter.Application.UnitTests.csproj", "{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,14 @@ Global
 		{CEE44843-364E-465A-B8CD-A8DF06D12B8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEE44843-364E-465A-B8CD-A8DF06D12B8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEE44843-364E-465A-B8CD-A8DF06D12B8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C899D14C-5EE4-43C8-B967-D9FC310DA6CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C899D14C-5EE4-43C8-B967-D9FC310DA6CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C899D14C-5EE4-43C8-B967-D9FC310DA6CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C899D14C-5EE4-43C8-B967-D9FC310DA6CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
