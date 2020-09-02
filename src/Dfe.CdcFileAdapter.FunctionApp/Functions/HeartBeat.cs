@@ -27,6 +27,7 @@ namespace Dfe.Spi.EntitySquasher.FunctionApp.Functions
             "CA1801",
             Justification = "The functions runtime requires the argument.")]
         [FunctionName(nameof(HeartBeat))]
+        [ExcludeFromCodeCoverage]
         public static IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Function, "GET", Route = null)]
             HttpRequest httpRequest)

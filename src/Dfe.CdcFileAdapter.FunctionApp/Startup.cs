@@ -1,6 +1,7 @@
 ﻿namespace Dfe.CdcFileAdapter.FunctionApp
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using Dfe.CdcFileAdapter.Application;
     using Dfe.CdcFileAdapter.Application.Definitions;
     using Dfe.CdcFileAdapter.Domain.Definitions;
@@ -17,6 +18,7 @@
     /// <summary>
     /// Functions startup class.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class Startup : FunctionsStartup
     {
         /// <inheritdoc />

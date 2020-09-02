@@ -1,11 +1,13 @@
 ﻿namespace Dfe.CdcFileAdapter.FunctionApp.Infrastructure.SettingsProvider
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using Dfe.CdcFileAdapter.Domain.Definitions.SettingsProviders;
 
     /// <summary>
     /// Implements <see cref="IFileStorageAdapterSettingsProvider" />.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class FileStorageAdapterSettingsProvider
         : IFileStorageAdapterSettingsProvider
     {

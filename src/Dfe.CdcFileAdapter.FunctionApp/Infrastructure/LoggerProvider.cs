@@ -1,6 +1,7 @@
 ﻿namespace Dfe.CdcFileAdapter.FunctionApp.Infrastructure
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using Microsoft.Azure.WebJobs.Host;
     using Microsoft.Extensions.Logging;
     using ILoggerProvider = Dfe.CdcFileAdapter.Domain.Definitions.ILoggerProvider;
@@ -8,6 +9,7 @@
     /// <summary>
     /// Implements <see cref="ILoggerProvider" />.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class LoggerProvider : ILoggerProvider
     {
         private readonly ILogger logger;
