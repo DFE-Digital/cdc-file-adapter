@@ -11,9 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.CdcFileAdapter.Domain",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.CdcFileAdapter.Infrastructure.AzureStorage", "Dfe.CdcFileAdapter.Infrastructure.AzureStorage\Dfe.CdcFileAdapter.Infrastructure.AzureStorage.csproj", "{CEE44843-364E-465A-B8CD-A8DF06D12B8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dfe.CdcFileAdapter.FunctionApp.UnitTests", "Dfe.CdcFileAdapter.FunctionApp.UnitTests\Dfe.CdcFileAdapter.FunctionApp.UnitTests.csproj", "{C899D14C-5EE4-43C8-B967-D9FC310DA6CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.CdcFileAdapter.FunctionApp.UnitTests", "Dfe.CdcFileAdapter.FunctionApp.UnitTests\Dfe.CdcFileAdapter.FunctionApp.UnitTests.csproj", "{C899D14C-5EE4-43C8-B967-D9FC310DA6CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dfe.CdcFileAdapter.Application.UnitTests", "Dfe.CdcFileAdapter.Application.UnitTests\Dfe.CdcFileAdapter.Application.UnitTests.csproj", "{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfe.CdcFileAdapter.Application.UnitTests", "Dfe.CdcFileAdapter.Application.UnitTests\Dfe.CdcFileAdapter.Application.UnitTests.csproj", "{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Dfe.CdcFileAdapter.StubDb", "Dfe.CdcFileAdapter.StubDb\Dfe.CdcFileAdapter.StubDb.sqlproj", "{1FAE53EC-4CF4-48E1-BFA7-7149EAD89308}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,12 @@ Global
 		{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C21A95B-7812-41A2-A3F9-B19D05A4DA70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FAE53EC-4CF4-48E1-BFA7-7149EAD89308}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FAE53EC-4CF4-48E1-BFA7-7149EAD89308}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FAE53EC-4CF4-48E1-BFA7-7149EAD89308}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{1FAE53EC-4CF4-48E1-BFA7-7149EAD89308}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FAE53EC-4CF4-48E1-BFA7-7149EAD89308}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FAE53EC-4CF4-48E1-BFA7-7149EAD89308}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

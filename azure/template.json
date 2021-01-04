@@ -53,6 +53,19 @@
     "eapimPublicIpAddress": {
       "type": "string"
     },
+    "sqlServerUsername": {
+      "type": "string",
+      "minLength": 6,
+      "maxLength": 20
+    },
+    "sqlServerPassword": {
+      "type": "securestring",
+      "minLength": 12
+    },
+    "sqlDatabaseName": {
+      "type": "string",
+      "defaultValue": "CdcStub"
+    },
     "appName": {
       "type": "string",
       "maxLength": 8
@@ -83,10 +96,53 @@
     "subnetId": "[resourceId(variables('corePrefix'), 'Microsoft.Network/virtualNetworks/subnets', variables('vNetName'), variables('subnetName'))]",
 
     "functionAppName": "[concat(variables('appNamePrefix'), '-fa-01')]",
-    "functionAppId": "[resourceId('Microsoft.Web/sites/', variables('functionAppName'))]"
+    "functionAppId": "[resourceId('Microsoft.Web/sites/', variables('functionAppName'))]",
+
+    "sqlServerName": "[concat(variables('appNamePrefix'), '-db-01')]"
 
   },
   "resources": [
+
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2015-05-01-preview",
+      "name": "[variables('sqlServerName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "environment": "[parameters('environment')]",
+        "app": "[parameters('appName')]"
+      },
+      "kind": "v12.0",
+      "properties": {
+        "administratorLogin": "[parameters('sqlServerUsername')]",
+        "administratorLoginPassword": "[parameters('sqlServerPassword')]",
+        "version": "12.0"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2017-10-01-preview",
+      "name": "[concat(variables('sqlServerName'), '/', parameters('sqlDatabaseName'))]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+      ],
+      "tags": {
+        "environment": "[parameters('environment')]",
+        "app": "[parameters('appName')]"
+      },
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic",
+        "capacity": 5
+      },
+      "kind": "v12.0,user,vcore",
+      "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "zoneRedundant": false
+      }
+    },
 
     {
       "type": "Microsoft.Web/serverfarms",
