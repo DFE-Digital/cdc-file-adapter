@@ -25,5 +25,14 @@
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets the original filename.
+        /// </summary>
+        public string FileName
+        {
+            get;
+            set;
+        }
     }
 }

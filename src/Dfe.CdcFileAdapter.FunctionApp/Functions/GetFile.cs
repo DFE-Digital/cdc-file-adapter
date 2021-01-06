@@ -1,7 +1,9 @@
 ﻿namespace Dfe.CdcFileAdapter.FunctionApp.Functions
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -20,6 +22,8 @@
         private readonly IFileManager fileManager;
         private readonly ILoggerProvider loggerProvider;
 
+        private readonly Dictionary<string, FileTypeOption> fileTypeMap;
+
         /// <summary>
         /// Initialises a new instance of the <see cref="GetFile" /> class.
         /// </summary>
@@ -35,6 +39,12 @@
         {
             this.fileManager = fileManager;
             this.loggerProvider = loggerProvider;
+
+            this.fileTypeMap = new Dictionary<string, FileTypeOption>()
+            {
+                { "report", FileTypeOption.Report },
+                { "site-plan", FileTypeOption.SitePlan },
+            };
         }
 
         /// <summary>
@@ -60,7 +70,7 @@
         public async Task<IActionResult> RunAsync(
             [HttpTrigger(AuthorizationLevel.Function, "GET", Route = "cdc-file/{urn}")]
             HttpRequest httpRequest,
-            string urn,
+            int urn,
             CancellationToken cancellationToken)
         {
             IActionResult toReturn = null;
@@ -75,56 +85,99 @@
                 throw new ArgumentNullException(nameof(httpRequest));
             }
 
-            string type = httpRequest.Query["type"];
+            string typeStr = httpRequest.Query["type"];
 
             // We do however, need a null-check on type.
-            if (!string.IsNullOrEmpty(type))
+            if (!string.IsNullOrEmpty(typeStr))
             {
-                this.loggerProvider.Debug($"{nameof(type)} = \"{type}\"");
+                this.loggerProvider.Debug(
+                    $"{nameof(typeStr)} = \"{typeStr}\"");
 
-                Domain.Models.File file =
-                    await this.fileManager.GetFileAsync(
-                        urn,
-                        type,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (file != null)
+                if (this.fileTypeMap.ContainsKey(typeStr))
                 {
-                    this.loggerProvider.Info(
-                        $"The method " +
-                        $"{nameof(IFileManager)}.{nameof(IFileManager.GetFileAsync)} " +
-                        $"method returned {file} for {nameof(urn)} = " +
-                        $"\"{urn}\" and {nameof(type)} = \"{type}\" - " +
-                        $"returning with a {nameof(FileContentResult)}.");
+                    FileTypeOption fileType = this.fileTypeMap[typeStr];
 
-                    byte[] contentBytes = file.ContentBytes.ToArray();
-                    string contentType = file.ContentType;
-
-                    toReturn = new FileContentResult(
-                        contentBytes,
-                        contentType);
+                    toReturn = await this.GetFileAsync(
+                        urn,
+                        fileType,
+                        cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    this.loggerProvider.Warning(
-                        $"The method " +
-                        $"{nameof(IFileManager)}.{nameof(IFileManager.GetFileAsync)} " +
-                        $"method returned null for {nameof(urn)} = " +
-                        $"\"{urn}\" and {nameof(type)} = \"{type}\" - " +
-                        $"returning {nameof(NotFoundResult)}.");
+                    string[] validTypes = this.fileTypeMap.Keys
+                        .Select(x => $"\"{x}\"")
+                        .ToArray();
 
-                    toReturn = new NotFoundResult();
+                    string validTypesList = string.Join(", ", validTypes);
+
+                    this.loggerProvider.Warning(
+                        $"The type was supplied was not valid. This needs " +
+                        $"to be one of the following values: " +
+                        $"{validTypesList}. Returning " +
+                        $"{nameof(BadRequestResult)}.");
+
+                    // Return "bad request" to indicate we need it.
+                    toReturn = new BadRequestResult();
                 }
             }
             else
             {
                 this.loggerProvider.Warning(
-                    $"The {nameof(type)} was not supplied. This is " +
-                    $"required. Returning {nameof(BadRequestResult)}.");
+                    $"The type was not supplied. This is required. " +
+                    $"Returning {nameof(BadRequestResult)}.");
 
                 // Return "bad request" to indicate we need it.
                 toReturn = new BadRequestResult();
+            }
+
+            return toReturn;
+        }
+
+        private async Task<IActionResult> GetFileAsync(
+            int urn,
+            FileTypeOption fileType,
+            CancellationToken cancellationToken)
+        {
+            IActionResult toReturn = null;
+
+            Domain.Models.File file =
+                await this.fileManager.GetFileAsync(
+                    urn,
+                    fileType,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (file != null)
+            {
+                this.loggerProvider.Info(
+                    $"The method " +
+                    $"{nameof(IFileManager)}.{nameof(IFileManager.GetFileAsync)} " +
+                    $"method returned {file} for {nameof(urn)} = \"{urn}\" " +
+                    $"and {nameof(fileType)} = \"{fileType}\" - returning " +
+                    $"with a {nameof(FileContentResult)}.");
+
+                byte[] contentBytes = file.ContentBytes.ToArray();
+                string contentType = file.ContentType;
+
+                FileContentResult fileContentResult = new FileContentResult(
+                    contentBytes,
+                    contentType);
+
+                fileContentResult.FileDownloadName = file.FileName;
+
+                toReturn = fileContentResult;
+            }
+            else
+            {
+                this.loggerProvider.Warning(
+                    $"The method " +
+                    $"{nameof(IFileManager)}.{nameof(IFileManager.GetFileAsync)} " +
+                    $"method returned null for {nameof(urn)} = \"{urn}\" " +
+                    $"and {nameof(fileType)} = \"{fileType}\" - returning " +
+                    $"{nameof(NotFoundResult)}.");
+
+                toReturn = new NotFoundResult();
             }
 
             return toReturn;

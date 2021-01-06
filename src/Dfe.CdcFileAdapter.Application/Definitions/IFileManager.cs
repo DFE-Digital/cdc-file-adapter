@@ -3,6 +3,7 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
+    using Dfe.CdcFileAdapter.Domain.Definitions;
     using Dfe.CdcFileAdapter.Domain.Models;
 
     /// <summary>
@@ -17,8 +18,8 @@
         /// <param name="urn">
         /// The URN of the file to return.
         /// </param>
-        /// <param name="type">
-        /// The type of file to return (e.g. "report", or "site-plan").
+        /// <param name="fileType">
+        /// A <see cref="FileTypeOption" /> value.
         /// </param>
         /// <param name="cancellationToken">
         /// An instance of <see cref="CancellationToken" />.
@@ -32,8 +33,8 @@
             "CA1054",
             Justification = "'URN', in this instance, does not refer to a URI.")]
         Task<File> GetFileAsync(
-            string urn,
-            string type,
+            int urn,
+            FileTypeOption fileType,
             CancellationToken cancellationToken);
     }
 }

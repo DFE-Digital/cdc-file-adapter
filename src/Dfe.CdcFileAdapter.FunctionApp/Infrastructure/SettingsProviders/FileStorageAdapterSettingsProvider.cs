@@ -1,4 +1,4 @@
-﻿namespace Dfe.CdcFileAdapter.FunctionApp.Infrastructure.SettingsProvider
+﻿namespace Dfe.CdcFileAdapter.FunctionApp.Infrastructure.SettingsProviders
 {
     using System;
     using System.Diagnostics.CodeAnalysis;

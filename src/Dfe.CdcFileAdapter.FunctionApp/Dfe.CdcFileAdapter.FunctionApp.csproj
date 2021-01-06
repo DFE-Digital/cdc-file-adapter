@@ -35,6 +35,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Dfe.CdcFileAdapter.Application\Dfe.CdcFileAdapter.Application.csproj" />
     <ProjectReference Include="..\Dfe.CdcFileAdapter.Infrastructure.AzureStorage\Dfe.CdcFileAdapter.Infrastructure.AzureStorage.csproj" />
+    <ProjectReference Include="..\Dfe.FileAdapter.Infrastructure.SqlServer\Dfe.FileAdapter.Infrastructure.SqlServer.csproj" />
   </ItemGroup>
   
   <ItemGroup>
