@@ -7,8 +7,9 @@
     using Dfe.CdcFileAdapter.Domain.Definitions;
     using Dfe.CdcFileAdapter.Domain.Definitions.SettingsProviders;
     using Dfe.CdcFileAdapter.FunctionApp.Infrastructure;
-    using Dfe.CdcFileAdapter.FunctionApp.Infrastructure.SettingsProvider;
+    using Dfe.CdcFileAdapter.FunctionApp.Infrastructure.SettingsProviders;
     using Dfe.CdcFileAdapter.Infrastructure.AzureStorage;
+    using Dfe.FileAdapter.Infrastructure.SqlServer;
     using Microsoft.Azure.Functions.Extensions.DependencyInjection;
     using Microsoft.Azure.WebJobs.Logging;
     using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +37,7 @@
             AddLogging(serviceCollection);
             AddManagers(serviceCollection);
             AddSettingsProviders(serviceCollection);
-            AddStorageAdapters(serviceCollection);
+            AddAdapters(serviceCollection);
         }
 
         private static void AddLogging(IServiceCollection serviceCollection)
@@ -71,13 +72,15 @@
             IServiceCollection serviceCollection)
         {
             serviceCollection
+                .AddSingleton<IFileMetaDataAdapterSettingsProvider, FileMetaDataAdapterSettingsProvider>()
                 .AddSingleton<IFileStorageAdapterSettingsProvider, FileStorageAdapterSettingsProvider>();
         }
 
-        private static void AddStorageAdapters(
+        private static void AddAdapters(
             IServiceCollection serviceCollection)
         {
             serviceCollection
+                .AddScoped<IFileMetaDataAdapter, FileMetaDataAdapter>()
                 .AddScoped<IFileStorageAdapter, FileStorageAdapter>();
         }
     }

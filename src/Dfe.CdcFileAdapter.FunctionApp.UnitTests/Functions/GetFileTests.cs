@@ -1,5 +1,9 @@
 ﻿namespace Dfe.CdcFileAdapter.FunctionApp.UnitTests.Functions
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Dfe.CdcFileAdapter.Application.Definitions;
     using Dfe.CdcFileAdapter.Domain.Definitions;
     using Dfe.CdcFileAdapter.Domain.Models;
@@ -10,10 +14,6 @@
     using Microsoft.Extensions.Primitives;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     [TestClass]
     public class GetFileTests
@@ -39,7 +39,7 @@
         {
             // Arrange
             HttpRequest httpRequest = null;
-            string urn = "abc";
+            int urn = 1234;
             CancellationToken cancellationToken = CancellationToken.None;
 
             // Assert
@@ -64,7 +64,38 @@
             mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
 
             HttpRequest httpRequest = mockHttpRequest.Object;
-            string urn = "abc";
+            int urn = 1234;
+            CancellationToken cancellationToken = CancellationToken.None;
+
+            IActionResult actionResult = null;
+
+            // Act
+            actionResult = await this.getFile.RunAsync(
+                httpRequest,
+                urn,
+                cancellationToken).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+        }
+
+        [TestMethod]
+        public async Task RunAsync_TypeQueryProvidedButInvalid_ReturnsBadeRequestResult()
+        {
+            // Arrange
+            Mock<HttpRequest> mockHttpRequest = new Mock<HttpRequest>();
+
+            Dictionary<string, StringValues> store =
+                new Dictionary<string, StringValues>()
+                {
+                    { "type", new StringValues("some-rubbish") }
+                };
+
+            QueryCollection queryCollection = new QueryCollection(store);
+            mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
+
+            HttpRequest httpRequest = mockHttpRequest.Object;
+            int urn = 1234;
             CancellationToken cancellationToken = CancellationToken.None;
 
             IActionResult actionResult = null;
@@ -88,14 +119,14 @@
             Dictionary<string, StringValues> store =
                 new Dictionary<string, StringValues>()
                 {
-                    { "type", new StringValues("some-file-type") }
+                    { "type", new StringValues("report") }
                 };
 
             QueryCollection queryCollection = new QueryCollection(store);
             mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
 
             HttpRequest httpRequest = mockHttpRequest.Object;
-            string urn = "abc";
+            int urn = 1234;
             CancellationToken cancellationToken = CancellationToken.None;
 
             IActionResult actionResult = null;
@@ -124,7 +155,7 @@
             };
 
             this.mockFileManager
-                .Setup(x => x.GetFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.GetFileAsync(It.IsAny<int>(), It.IsAny<FileTypeOption>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(file));
 
             Mock<HttpRequest> mockHttpRequest = new Mock<HttpRequest>();
@@ -132,14 +163,14 @@
             Dictionary<string, StringValues> store =
                 new Dictionary<string, StringValues>()
                 {
-                    { "type", new StringValues("some-file-type") }
+                    { "type", new StringValues("site-plan") }
                 };
 
             QueryCollection queryCollection = new QueryCollection(store);
             mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
 
             HttpRequest httpRequest = mockHttpRequest.Object;
-            string urn = "abc";
+            int urn = 1234;
             CancellationToken cancellationToken = CancellationToken.None;
 
             IActionResult actionResult = null;

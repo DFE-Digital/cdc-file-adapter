@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Dfe.FileAdapter.Infrastructure.SqlServer</name>
+    </assembly>
+    <members>
+        <member name="T:Dfe.FileAdapter.Infrastructure.SqlServer.FileMetaDataAdapter">
+            <summary>
+            Implements <see cref="T:Dfe.CdcFileAdapter.Domain.Definitions.IFileMetaDataAdapter" />.
+            </summary>
+        </member>
+        <member name="M:Dfe.FileAdapter.Infrastructure.SqlServer.FileMetaDataAdapter.#ctor(Dfe.CdcFileAdapter.Domain.Definitions.SettingsProviders.IFileMetaDataAdapterSettingsProvider,Dfe.CdcFileAdapter.Domain.Definitions.ILoggerProvider)">
+            <summary>
+            Initialises a new instance of the
+            <see cref="T:Dfe.FileAdapter.Infrastructure.SqlServer.FileMetaDataAdapter" /> class.
+            </summary>
+            <param name="fileMetaDataAdapterSettingsProvider">
+            An instance of type
+            <see cref="T:Dfe.CdcFileAdapter.Domain.Definitions.SettingsProviders.IFileMetaDataAdapterSettingsProvider" />.
+            </param>
+            <param name="loggerProvider">
+            An instance of type <see cref="T:Dfe.CdcFileAdapter.Domain.Definitions.ILoggerProvider" />.
+            </param>
+        </member>
+        <member name="M:Dfe.FileAdapter.Infrastructure.SqlServer.FileMetaDataAdapter.GetFileMetaDatasAsync(System.Int32,Dfe.CdcFileAdapter.Domain.Definitions.FileTypeOption,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Dfe.FileAdapter.Infrastructure.SqlServer.Models.GetFileListResult">
+            <summary>
+            Result class for the <c>GetFileList</c> stored procedure.
+            </summary>
+        </member>
+        <member name="P:Dfe.FileAdapter.Infrastructure.SqlServer.Models.GetFileListResult.SiteVisitDate">
+            <summary>
+            Gets or sets the <c>SiteVisitDate</c> value.
+            </summary>
+        </member>
+        <member name="P:Dfe.FileAdapter.Infrastructure.SqlServer.Models.GetFileListResult.FileName">
+            <summary>
+            Gets or sets the <c>FileName</c> value.
+            </summary>
+        </member>
+        <member name="P:Dfe.FileAdapter.Infrastructure.SqlServer.Models.GetFileListResult.FileURL">
+            <summary>
+            Gets or sets the <c>FileURL</c> value.
+            </summary>
+        </member>
+    </members>
+</doc>

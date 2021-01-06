@@ -2,6 +2,7 @@
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Dfe.CdcFileAdapter.Domain.Definitions;
@@ -73,11 +74,15 @@
             "CA1054",
             Justification = "'URN', in this instance, does not refer to a URI.")]
         public async Task<File> GetFileAsync(
-            string urn,
-            string type,
+            FileMetaData fileMetaData,
             CancellationToken cancellationToken)
         {
             File toReturn = null;
+
+            if (fileMetaData == null)
+            {
+                throw new ArgumentNullException(nameof(fileMetaData));
+            }
 
             // 1) Get the container, then...
             this.loggerProvider.Debug(
@@ -91,56 +96,55 @@
                 $"{nameof(CloudBlobContainer)} obtained: " +
                 $"\"{cloudBlobContainer.Uri}\".");
 
-            // 2) Get the directory reference, then...
+            // 2) Use the path to get the file.
+            Uri location = fileMetaData.Location;
+
+            bool exists = true;
+
+            ICloudBlob cloudBlob = null;
+
             this.loggerProvider.Debug(
-                $"Getting {nameof(CloudBlobDirectory)} with {nameof(type)} " +
-                $"= \"{type}\"...");
+                $"Getting {nameof(ICloudBlob)} reference/checking if file " +
+                $"exists at {location}...");
+            try
+            {
+                cloudBlob =
+                    await this.cloudBlobClient.GetBlobReferenceFromServerAsync(
+                        location,
+                        AccessCondition.GenerateEmptyCondition(),
+                        this.blobRequestOptions,
+                        this.operationContext)
+                    .ConfigureAwait(false);
 
-            CloudBlobDirectory cloudBlobDirectory =
-                cloudBlobContainer.GetDirectoryReference(type);
+                this.loggerProvider.Info($"File exists at: {location}.");
+            }
+            catch (StorageException storageException)
+            {
+                this.loggerProvider.Warning(
+                    $"It's highly likely that this file ({location}) does " +
+                    $"not exist. Cannot download.",
+                    storageException);
 
-            this.loggerProvider.Info(
-                $"{nameof(CloudBlobDirectory)} obtained: " +
-                $"\"{cloudBlobDirectory.Uri}\".");
+                exists = false;
+            }
 
-            // 3) Try and find the file...!
-            this.loggerProvider.Debug(
-                $"Getting {nameof(CloudBlob)} with {nameof(urn)} = " +
-                $"\"{urn}\"...");
-
-            CloudBlob cloudBlob = cloudBlobDirectory.GetBlobReference(urn);
-
-            Uri uri = cloudBlob.Uri;
-
-            this.loggerProvider.Info(
-                $"{nameof(CloudBlob)} obtained: \"{uri}\".");
-
-            // Does this guy exist?
-            this.loggerProvider.Debug(
-                $"Checking for existance of \"{uri}\"...");
-
-            bool exists =
-                await cloudBlob.ExistsAsync(
-                    this.blobRequestOptions,
-                    this.operationContext,
-                    cancellationToken)
-                .ConfigureAwait(false);
+            CloudBlockBlob cloudBlockBlob = (CloudBlockBlob)cloudBlob;
 
             if (exists)
             {
-                BlobProperties blobProperties = cloudBlob.Properties;
+                BlobProperties blobProperties = cloudBlockBlob.Properties;
 
                 string contentType = blobProperties.ContentType;
                 long length = blobProperties.Length;
 
                 this.loggerProvider.Info(
-                    $"File at \"{uri}\" exists ({nameof(contentType)} = " +
-                    $"\"{contentType}\", {nameof(length)} = {length}). " +
-                    $"Downloading content...");
+                    $"File at \"{location}\" exists " +
+                    $"({nameof(contentType)} = \"{contentType}\", " +
+                    $"{nameof(length)} = {length}). Downloading content...");
 
                 byte[] contentBytes = new byte[length];
 
-                await cloudBlob.DownloadToByteArrayAsync(
+                await cloudBlockBlob.DownloadToByteArrayAsync(
                     contentBytes,
                     0,
                     AccessCondition.GenerateEmptyCondition(),
@@ -153,16 +157,19 @@
                     $"{length} byte(s) downloaded. Stuffing results into a " +
                     $"{nameof(File)} instance, and returning.");
 
+                string fileName = location.Segments.Last();
+
                 toReturn = new File()
                 {
                     ContentType = contentType,
                     ContentBytes = contentBytes,
+                    FileName = fileName,
                 };
             }
             else
             {
                 this.loggerProvider.Warning(
-                    $"File at \"{uri}\" does not exist. Returning null.");
+                    $"File at \"{location}\" does not exist. Returning null.");
             }
 
             return toReturn;
