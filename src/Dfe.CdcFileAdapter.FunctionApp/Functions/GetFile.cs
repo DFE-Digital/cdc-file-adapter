@@ -19,6 +19,8 @@
     /// </summary>
     public class GetFile
     {
+        private const string FallbackUrnsHeaderName = "X-Fallback-Urns";
+
         private readonly IFileManager fileManager;
         private readonly ILoggerProvider loggerProvider;
 
@@ -85,50 +87,94 @@
                 throw new ArgumentNullException(nameof(httpRequest));
             }
 
-            string typeStr = httpRequest.Query["type"];
+            // The following header is optional.
+            // If the requested file is not available, then fetch the files
+            // contained within this CSL.
+            IHeaderDictionary headers = httpRequest.Headers;
 
-            // We do however, need a null-check on type.
-            if (!string.IsNullOrEmpty(typeStr))
+            int[] fallbackUrns = null;
+            if (headers.ContainsKey(FallbackUrnsHeaderName))
             {
+                string fallbackUrnsCsl = headers[FallbackUrnsHeaderName];
+
                 this.loggerProvider.Debug(
-                    $"{nameof(typeStr)} = \"{typeStr}\"");
+                    $"Header \"{FallbackUrnsHeaderName}\" was specified: " +
+                    $"\"{fallbackUrnsCsl}\". This should be a CSL of " +
+                    $"integers. Parsing...");
 
-                if (this.fileTypeMap.ContainsKey(typeStr))
+                string[] fallbackUrnsStr = fallbackUrnsCsl.Split(',');
+
+                // Try and parse each one.
+                try
                 {
-                    FileTypeOption fileType = this.fileTypeMap[typeStr];
+                    fallbackUrns = fallbackUrnsStr
+                        .Select(x => x.Trim())
+                        .Select(x => int.Parse(x, CultureInfo.InvariantCulture))
+                        .ToArray();
 
-                    toReturn = await this.GetFileAsync(
-                        urn,
-                        fileType,
-                        cancellationToken)
-                        .ConfigureAwait(false);
+                    this.loggerProvider.Info(
+                        $"Parsed {fallbackUrns.Length} fallback URNs.");
+                }
+                catch (FormatException)
+                {
+                    this.loggerProvider.Warning(
+                        $"Could not parse header value for " +
+                        $"\"{FallbackUrnsHeaderName}\" into an array of " +
+                        $"{nameof(Int32)} values. Original string: " +
+                        $"\"{fallbackUrnsCsl}\".");
+
+                    toReturn = new BadRequestResult();
+                }
+            }
+
+            if (toReturn == null)
+            {
+                string typeStr = httpRequest.Query["type"];
+
+                // We need a null-check on type.
+                if (!string.IsNullOrEmpty(typeStr))
+                {
+                    this.loggerProvider.Debug(
+                        $"{nameof(typeStr)} = \"{typeStr}\"");
+
+                    if (this.fileTypeMap.ContainsKey(typeStr))
+                    {
+                        FileTypeOption fileType = this.fileTypeMap[typeStr];
+
+                        toReturn = await this.GetFileAsync(
+                            urn,
+                            fileType,
+                            fallbackUrns,
+                            cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        string[] validTypes = this.fileTypeMap.Keys
+                            .Select(x => $"\"{x}\"")
+                            .ToArray();
+
+                        string validTypesList = string.Join(", ", validTypes);
+
+                        this.loggerProvider.Warning(
+                            $"The type was supplied was not valid. This " +
+                            $"needs to be one of the following values: " +
+                            $"{validTypesList}. Returning " +
+                            $"{nameof(BadRequestResult)}.");
+
+                        // Return "bad request" to indicate we need it.
+                        toReturn = new BadRequestResult();
+                    }
                 }
                 else
                 {
-                    string[] validTypes = this.fileTypeMap.Keys
-                        .Select(x => $"\"{x}\"")
-                        .ToArray();
-
-                    string validTypesList = string.Join(", ", validTypes);
-
                     this.loggerProvider.Warning(
-                        $"The type was supplied was not valid. This needs " +
-                        $"to be one of the following values: " +
-                        $"{validTypesList}. Returning " +
-                        $"{nameof(BadRequestResult)}.");
+                        $"The type was not supplied. This is required. " +
+                        $"Returning {nameof(BadRequestResult)}.");
 
                     // Return "bad request" to indicate we need it.
                     toReturn = new BadRequestResult();
                 }
-            }
-            else
-            {
-                this.loggerProvider.Warning(
-                    $"The type was not supplied. This is required. " +
-                    $"Returning {nameof(BadRequestResult)}.");
-
-                // Return "bad request" to indicate we need it.
-                toReturn = new BadRequestResult();
             }
 
             return toReturn;
@@ -137,6 +183,7 @@
         private async Task<IActionResult> GetFileAsync(
             int urn,
             FileTypeOption fileType,
+            int[] fallbackUrns,
             CancellationToken cancellationToken)
         {
             IActionResult toReturn = null;
@@ -145,6 +192,7 @@
                 await this.fileManager.GetFileAsync(
                     urn,
                     fileType,
+                    fallbackUrns,
                     cancellationToken)
                 .ConfigureAwait(false);
 

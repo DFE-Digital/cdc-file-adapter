@@ -21,6 +21,10 @@
         /// <param name="fileType">
         /// A <see cref="FileTypeOption" /> value.
         /// </param>
+        /// <param name="fallbackUrns">
+        /// An array of <see cref="int" /> values to fetch if no files exist
+        /// for <paramref name="urn" />.
+        /// </param>
         /// <param name="cancellationToken">
         /// An instance of <see cref="CancellationToken" />.
         /// </param>
@@ -35,6 +39,7 @@
         Task<File> GetFileAsync(
             int urn,
             FileTypeOption fileType,
+            int[] fallbackUrns,
             CancellationToken cancellationToken);
     }
 }

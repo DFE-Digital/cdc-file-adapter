@@ -63,6 +63,43 @@
             QueryCollection queryCollection = new QueryCollection();
             mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
 
+            HeaderDictionary headerDictionary = new HeaderDictionary()
+            {
+                // Nothing, for now.
+            };
+            mockHttpRequest.Setup(x => x.Headers).Returns(headerDictionary);
+
+            HttpRequest httpRequest = mockHttpRequest.Object;
+            int urn = 1234;
+            CancellationToken cancellationToken = CancellationToken.None;
+
+            IActionResult actionResult = null;
+
+            // Act
+            actionResult = await this.getFile.RunAsync(
+                httpRequest,
+                urn,
+                cancellationToken).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult, typeof(BadRequestResult));
+        }
+
+        [TestMethod]
+        public async Task RunAsync_EmptyFallbackUrnsHeaderProvided_ReturnsBadRequestResult()
+        {
+            // Arrange
+            Mock<HttpRequest> mockHttpRequest = new Mock<HttpRequest>();
+
+            QueryCollection queryCollection = new QueryCollection();
+            mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
+
+            HeaderDictionary headerDictionary = new HeaderDictionary()
+            {
+                { "X-Fallback-Urns", string.Empty },
+            };
+            mockHttpRequest.Setup(x => x.Headers).Returns(headerDictionary);
+
             HttpRequest httpRequest = mockHttpRequest.Object;
             int urn = 1234;
             CancellationToken cancellationToken = CancellationToken.None;
@@ -93,6 +130,12 @@
 
             QueryCollection queryCollection = new QueryCollection(store);
             mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
+
+            HeaderDictionary headerDictionary = new HeaderDictionary()
+            {
+                // Nothing, for now.
+            };
+            mockHttpRequest.Setup(x => x.Headers).Returns(headerDictionary);
 
             HttpRequest httpRequest = mockHttpRequest.Object;
             int urn = 1234;
@@ -125,6 +168,12 @@
             QueryCollection queryCollection = new QueryCollection(store);
             mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
 
+            HeaderDictionary headerDictionary = new HeaderDictionary()
+            {
+                // Nothing, for now.
+            };
+            mockHttpRequest.Setup(x => x.Headers).Returns(headerDictionary);
+
             HttpRequest httpRequest = mockHttpRequest.Object;
             int urn = 1234;
             CancellationToken cancellationToken = CancellationToken.None;
@@ -154,9 +203,20 @@
                 ContentBytes = contentBytes,
             };
 
+            int[] expectedFallbackUrns = new int[] { 5678, 9012 };
+            int[] actualFallbackUrns = null;
+
+            Func<int, FileTypeOption, int[], CancellationToken, Task<File>> returnCallback =
+                (urn, fileType, fallbackUrns, cancellationToken) =>
+                {
+                    actualFallbackUrns = fallbackUrns;
+
+                    return Task.FromResult(file);
+                };
+
             this.mockFileManager
-                .Setup(x => x.GetFileAsync(It.IsAny<int>(), It.IsAny<FileTypeOption>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(file));
+                .Setup(x => x.GetFileAsync(It.IsAny<int>(), It.IsAny<FileTypeOption>(), It.IsAny<int[]>(), It.IsAny<CancellationToken>()))
+                .Returns(returnCallback);
 
             Mock<HttpRequest> mockHttpRequest = new Mock<HttpRequest>();
 
@@ -168,6 +228,13 @@
 
             QueryCollection queryCollection = new QueryCollection(store);
             mockHttpRequest.Setup(x => x.Query).Returns(queryCollection);
+
+            // Supply some fallback URNs...
+            HeaderDictionary headerDictionary = new HeaderDictionary()
+            {
+                { "X-Fallback-Urns", "5678,9012" }
+            };
+            mockHttpRequest.Setup(x => x.Headers).Returns(headerDictionary);
 
             HttpRequest httpRequest = mockHttpRequest.Object;
             int urn = 1234;
@@ -183,6 +250,12 @@
 
             // Assert
             Assert.IsInstanceOfType(actionResult, typeof(FileContentResult));
+
+            // -> Checks that the parsing of fallbackUrns is working as
+            //    expected.
+            CollectionAssert.AreEqual(
+                expectedFallbackUrns,
+                actualFallbackUrns);
         }
     }
 }
