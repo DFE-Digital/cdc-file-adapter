@@ -9,19 +9,21 @@
     using Dfe.CdcFileAdapter.Domain.Definitions.SettingsProviders;
     using Dfe.CdcFileAdapter.Domain.Models;
     using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Blob;
+    using Microsoft.WindowsAzure.Storage.Auth;
+    using Microsoft.WindowsAzure.Storage.File;
 
     /// <summary>
     /// Implements <see cref="IFileStorageAdapter" />.
     /// </summary>
     public class FileStorageAdapter : IFileStorageAdapter
     {
+        private const string DefaultContentType = "application/octet-stream";
+
         private readonly ILoggerProvider loggerProvider;
 
-        private readonly BlobRequestOptions blobRequestOptions;
+        private readonly StorageCredentials storageCredentials;
+        private readonly FileRequestOptions fileRequestOptions;
         private readonly OperationContext operationContext;
-        private readonly CloudBlobClient cloudBlobClient;
-        private readonly string fileStorageContainerName;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="FileStorageAdapter" />
@@ -50,14 +52,11 @@
             CloudStorageAccount cloudStorageAccount =
                 CloudStorageAccount.Parse(fileStorageConnectionString);
 
-            this.cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
-
-            this.fileStorageContainerName =
-                fileStorageAdapterSettingsProvider.FileStorageContainerName;
+            this.storageCredentials = cloudStorageAccount.Credentials;
 
             this.loggerProvider = loggerProvider;
 
-            this.blobRequestOptions = new BlobRequestOptions()
+            this.fileRequestOptions = new FileRequestOptions()
             {
                 // Just default, for now.
             };
@@ -84,58 +83,50 @@
                 throw new ArgumentNullException(nameof(fileMetaData));
             }
 
-            // 1) Get the container, then...
-            this.loggerProvider.Debug(
-                $"Getting {nameof(CloudBlobContainer)}...");
-
-            CloudBlobContainer cloudBlobContainer =
-                await this.GetContainerAsync()
-                .ConfigureAwait(false);
-
-            this.loggerProvider.Info(
-                $"{nameof(CloudBlobContainer)} obtained: " +
-                $"\"{cloudBlobContainer.Uri}\".");
-
-            // 2) Use the path to get the file.
             Uri location = fileMetaData.Location;
 
-            bool exists = true;
+            this.loggerProvider.Info($"{nameof(location)} = {location}");
 
-            ICloudBlob cloudBlob = null;
+            CloudFile cloudFile = new CloudFile(
+                location,
+                this.storageCredentials);
 
             this.loggerProvider.Debug(
-                $"Getting {nameof(ICloudBlob)} reference/checking if file " +
-                $"exists at {location}...");
-            try
-            {
-                cloudBlob =
-                    await this.cloudBlobClient.GetBlobReferenceFromServerAsync(
-                        location,
-                        AccessCondition.GenerateEmptyCondition(),
-                        this.blobRequestOptions,
-                        this.operationContext)
-                    .ConfigureAwait(false);
+                $"Checking if {nameof(CloudFile)} at {location} exists...");
 
-                this.loggerProvider.Info($"File exists at: {location}.");
-            }
-            catch (StorageException storageException)
-            {
-                this.loggerProvider.Warning(
-                    $"It's highly likely that this file ({location}) does " +
-                    $"not exist. Cannot download.",
-                    storageException);
+            bool exists = await cloudFile.ExistsAsync().ConfigureAwait(false);
 
-                exists = false;
-            }
-
-            CloudBlockBlob cloudBlockBlob = (CloudBlockBlob)cloudBlob;
+            this.loggerProvider.Info($"{nameof(exists)} = {exists}");
 
             if (exists)
             {
-                BlobProperties blobProperties = cloudBlockBlob.Properties;
+                FileProperties fileProperties = cloudFile.Properties;
 
-                string contentType = blobProperties.ContentType;
-                long length = blobProperties.Length;
+                string contentType = fileProperties.ContentType;
+
+                // It appears that, the content type, whilst *available* on a
+                // FileShare file, doesn't tend to be updated by file upload 
+                // clients as it should.
+                // This is where we pull the content type from usually.
+                // Therefore, if this is required, we may need to run a script
+                // over existing files, or remember to supply the content type
+                // (perhaps with azcopy) on initialisation of the storage.
+                if (string.IsNullOrEmpty(contentType))
+                {
+                    this.loggerProvider.Warning(
+                        $"Default content type (\"{DefaultContentType}\") " +
+                        $"being used, as no content type available for this " +
+                        $"particular file.");
+
+                    contentType = DefaultContentType;
+                }
+                else
+                {
+                    this.loggerProvider.Info(
+                        $"{nameof(contentType)} = \"{contentType}\"");
+                }
+
+                long length = fileProperties.Length;
 
                 this.loggerProvider.Info(
                     $"File at \"{location}\" exists " +
@@ -144,11 +135,11 @@
 
                 byte[] contentBytes = new byte[length];
 
-                await cloudBlockBlob.DownloadToByteArrayAsync(
+                await cloudFile.DownloadToByteArrayAsync(
                     contentBytes,
                     0,
                     AccessCondition.GenerateEmptyCondition(),
-                    this.blobRequestOptions,
+                    this.fileRequestOptions,
                     this.operationContext,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -171,25 +162,6 @@
                 this.loggerProvider.Warning(
                     $"File at \"{location}\" does not exist. Returning null.");
             }
-
-            return toReturn;
-        }
-
-        private async Task<CloudBlobContainer> GetContainerAsync()
-        {
-            CloudBlobContainer toReturn = null;
-
-            string container = this.fileStorageContainerName;
-
-            this.loggerProvider.Debug(
-                $"Getting container reference for \"{container}\"...");
-
-            toReturn = this.cloudBlobClient.GetContainerReference(container);
-
-            await toReturn.CreateIfNotExistsAsync().ConfigureAwait(false);
-
-            this.loggerProvider.Info(
-                $"Container reference for \"{container}\" obtained.");
 
             return toReturn;
         }
