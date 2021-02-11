@@ -66,6 +66,10 @@
       "type": "string",
       "defaultValue": "CdcStub"
     },
+    "cdcDocumentsFileShareName": {
+      "type": "string",
+      "defaultValue": "files"
+    },
     "appName": {
       "type": "string",
       "maxLength": 8
@@ -89,6 +93,8 @@
     "storageAccountName02": "[concat(variables('namePrefix'), parameters('appName'), 'sa02')]",
     "storageAccountId02": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName02'))]",
     "storageAccountConnStr02": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName02'), ';AccountKey=')]",
+
+    "fileShareName": "[concat(variables('storageAccountName02'), '/default/', parameters('cdcDocumentsFileShareName'))]",
 
     "corePrefix": "[concat(parameters('serviceIdentifier'), parameters('environment'), parameters('coreResourceGroupEnvironmentInstance'), '-core')]",
     "vNetName": "[concat(concat(variables('corePrefix'), '-vn-'), parameters('vNetInstance'))]",
@@ -246,6 +252,14 @@
         },
         "accessTier": "Hot"
       }
+    },
+    {
+      "apiVersion": "2020-08-01-preview",
+      "name": "[variables('fileShareName')]",
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+      "dependsOn": [
+        "[variables('storageAccountId02')]"
+      ]
     },
 
     {
