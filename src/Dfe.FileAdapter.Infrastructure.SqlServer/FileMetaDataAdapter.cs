@@ -55,7 +55,7 @@
             var parameters = new
             {
                 EstablishmentID = establishmentId,
-                TypeID = typeId,
+                FileTypeID = typeId,
             };
 
             IEnumerable<GetFileListResult> getFileListResults = null;
@@ -68,7 +68,7 @@
 
                 getFileListResults =
                     await sqlConnection.QueryAsync<GetFileListResult>(
-                        "GetFileList",
+                        "sp_SELECT_FileData",
                         parameters,
                         commandType: CommandType.StoredProcedure)
                     .ConfigureAwait(false);
