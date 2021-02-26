@@ -111,8 +111,8 @@
     "functionAppName": "[concat(variables('appNamePrefix'), '-fa-01')]",
     "functionAppId": "[resourceId('Microsoft.Web/sites/', variables('functionAppName'))]",
 
-    "sqlServerName": "[concat(variables('appNamePrefix'), '-', parameters('cdcDataSqlAppName'), '-sql-01')]",
-    "sqlDatabaseName": "[concat(variables('appNamePrefix'), '-', parameters('sqlDatabaseNameSuffix'))]"
+    "sqlServerName": "[concat(variables('namePrefix'), '-', parameters('cdcDataSqlAppName'), '-sql-01')]",
+    "sqlDatabaseName": "[concat(variables('namePrefix'), '-', parameters('sqlDatabaseNameSuffix'))]"
 
   },
   "resources": [
