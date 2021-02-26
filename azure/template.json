@@ -53,6 +53,21 @@
     "eapimPublicIpAddress": {
       "type": "string"
     },
+    "cdcDataStorageAppName": {
+      "type": "string",
+      "defaultValue": "cdcdocs"
+    },
+    "cdcDataSqlAppName": {
+      "type": "string",
+      "defaultValue": "cdcdata"
+    },
+    "cdcDataStorageAccountKey": {
+      "type": "securestring"
+    },
+    "sqlDatabaseNameSuffix": {
+      "type": "string",
+      "defaultValue": "CDC-Mastered-Data"
+    },
     "sqlServerUsername": {
       "type": "string",
       "minLength": 6,
@@ -62,13 +77,9 @@
       "type": "securestring",
       "minLength": 12
     },
-    "sqlDatabaseName": {
-      "type": "string",
-      "defaultValue": "CdcStub"
-    },
     "cdcDocumentsFileShareName": {
       "type": "string",
-      "defaultValue": "files"
+      "defaultValue": "cdcdocuments"
     },
     "appName": {
       "type": "string",
@@ -86,15 +97,11 @@
     "appInsightsName": "[concat(variables('appNamePrefix'), '-ai-01')]",
     "appInsightsId": "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
 
-    "storageAccountName01": "[concat(variables('namePrefix'), parameters('appName'), 'sa01')]",
-    "storageAccountId01": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName01'))]",
-    "storageAccountConnStr01": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName01'), ';AccountKey=')]",
+    "storageAccountName": "[concat(variables('namePrefix'), parameters('appName'), 'sa01')]",
+    "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+    "storageAccountConnStr": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=')]",
 
-    "storageAccountName02": "[concat(variables('namePrefix'), parameters('appName'), 'sa02')]",
-    "storageAccountId02": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName02'))]",
-    "storageAccountConnStr02": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName02'), ';AccountKey=')]",
-
-    "fileShareName": "[concat(variables('storageAccountName02'), '/default/', parameters('cdcDocumentsFileShareName'))]",
+    "cdcDataAccountName": "[concat(variables('namePrefix'), parameters('cdcDataStorageAppName'), 'sa01')]",
 
     "corePrefix": "[concat(parameters('serviceIdentifier'), parameters('environment'), parameters('coreResourceGroupEnvironmentInstance'), '-core')]",
     "vNetName": "[concat(concat(variables('corePrefix'), '-vn-'), parameters('vNetInstance'))]",
@@ -104,51 +111,11 @@
     "functionAppName": "[concat(variables('appNamePrefix'), '-fa-01')]",
     "functionAppId": "[resourceId('Microsoft.Web/sites/', variables('functionAppName'))]",
 
-    "sqlServerName": "[concat(variables('appNamePrefix'), '-db-01')]"
+    "sqlServerName": "[concat(variables('appNamePrefix'), '-', parameters('cdcDataSqlAppName'), '-sql-01')]",
+    "sqlDatabaseName": "[concat(variables('appNamePrefix'), '-', parameters('sqlDatabaseNameSuffix'))]"
 
   },
   "resources": [
-
-    {
-      "type": "Microsoft.Sql/servers",
-      "apiVersion": "2015-05-01-preview",
-      "name": "[variables('sqlServerName')]",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "environment": "[parameters('environment')]",
-        "app": "[parameters('appName')]"
-      },
-      "kind": "v12.0",
-      "properties": {
-        "administratorLogin": "[parameters('sqlServerUsername')]",
-        "administratorLoginPassword": "[parameters('sqlServerPassword')]",
-        "version": "12.0"
-      }
-    },
-    {
-      "type": "Microsoft.Sql/servers/databases",
-      "apiVersion": "2017-10-01-preview",
-      "name": "[concat(variables('sqlServerName'), '/', parameters('sqlDatabaseName'))]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
-      ],
-      "tags": {
-        "environment": "[parameters('environment')]",
-        "app": "[parameters('appName')]"
-      },
-      "sku": {
-        "name": "Basic",
-        "tier": "Basic",
-        "capacity": 5
-      },
-      "kind": "v12.0,user,vcore",
-      "properties": {
-        "collation": "SQL_Latin1_General_CP1_CI_AS",
-        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
-        "zoneRedundant": false
-      }
-    },
 
     {
       "type": "Microsoft.Web/serverfarms",
@@ -186,7 +153,7 @@
 
     {
       "apiVersion": "2019-06-01",
-      "name": "[variables('storageAccountName01')]",
+      "name": "[variables('storageAccountName')]",
       "type": "Microsoft.Storage/storageAccounts",
       "location": "[resourceGroup().location]",
       "tags": {
@@ -213,53 +180,6 @@
         },
         "accessTier": "Hot"
       }
-    },
-    {
-      "apiVersion": "2019-06-01",
-      "name": "[variables('storageAccountName02')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "environment": "[parameters('environmentName')]",
-        "app": "[parameters('appName')]"
-      },
-      "sku": {
-        "name": "Standard_LRS",
-        "tier": "Standard"
-      },
-      "kind": "StorageV2",
-      "properties": {
-        "networkAcls": {
-          "bypass": "none",
-          "virtualNetworkRules": [
-            {
-              "id": "[variables('subnetId')]"
-            }
-          ],
-          "defaultAction": "Deny"
-        },
-        "supportsHttpsTrafficOnly": true,
-        "encryption": {
-          "services": {
-            "file": {
-              "enabled": true
-            },
-            "blob": {
-              "enabled": true
-            }
-          },
-          "keySource": "Microsoft.Storage"
-        },
-        "accessTier": "Hot"
-      }
-    },
-    {
-      "apiVersion": "2020-08-01-preview",
-      "name": "[variables('fileShareName')]",
-      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
-      "dependsOn": [
-        "[variables('storageAccountId02')]"
-      ]
     },
 
     {
@@ -270,8 +190,7 @@
       "dependsOn": [
         "[variables('servicePlanId')]",
         "[variables('appInsightsId')]",
-        "[variables('storageAccountId01')]",
-        "[variables('storageAccountId02')]"
+        "[variables('storageAccountId')]"
       ],
       "tags": {
         "environment": "[parameters('environmentName')]",
@@ -289,15 +208,15 @@
             },
             {
               "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat(variables('storageAccountConnStr01'), listKeys(variables('storageAccountId01'), '2015-05-01-preview').key1)]"
+              "value": "[concat(variables('storageAccountConnStr'), listKeys(variables('storageAccountId'), '2015-05-01-preview').key1)]"
             },
             {
               "name": "AzureWebJobsDashboard",
-              "value": "[concat(variables('storageAccountConnStr01'), listKeys(variables('storageAccountId01'), '2015-05-01-preview').key1)]"
+              "value": "[concat(variables('storageAccountConnStr'), listKeys(variables('storageAccountId'), '2015-05-01-preview').key1)]"
             },
             {
               "name": "AzureWebJobsStorage",
-              "value": "[concat(variables('storageAccountConnStr01'), listKeys(variables('storageAccountId01'), '2015-05-01-preview').key1)]"
+              "value": "[concat(variables('storageAccountConnStr'), listKeys(variables('storageAccountId'), '2015-05-01-preview').key1)]"
             },
             {
               "name": "WEBSITE_CONTENTSHARE",
@@ -318,15 +237,15 @@
 
             {
               "name": "FileStorageConnectionString",
-              "value": "[concat(variables('storageAccountConnStr02'), listKeys(variables('storageAccountId02'), '2015-05-01-preview').key1)]"
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cdcDataAccountName'), ';AccountKey=', parameters('cdcDataStorageAccountKey'))]"
             },
             {
               "name": "FileStorageContainerName",
-              "value": "files"
+              "value": "[parameters('cdcDocumentsFileShareName')]"
             },
             {
               "name": "FileMetaDataConnectionString",
-              "value": "[concat('Server=tcp:', reference(variables('sqlserverName')).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('sqlDatabaseName'), ';Persist Security Info=False;User ID=', parameters('sqlServerUsername'), ';Password=', parameters('sqlServerPassword'), ';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]"
+              "value": "[concat('Server=tcp:', variables('sqlServerName'), '.database.windows.net,1433;Initial Catalog=', variables('sqlDatabaseName'), ';Persist Security Info=False;User ID=', parameters('sqlServerUsername'), ';Password=', parameters('sqlServerPassword'), ';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]"
             }
 
           ],
