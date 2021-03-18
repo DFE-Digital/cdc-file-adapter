@@ -32,6 +32,16 @@
       "maxLength": 2,
       "defaultValue": "01"
     },
+    "sharedResourcesAppName": {
+      "type": "string",
+      "defaultValue": "common"
+    },
+    "appInsightsInstance": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 2,
+      "defaultValue": "01"
+    },
     "coreResourceGroupEnvironmentInstance": {
       "type": "string",
       "minLength": 2,
@@ -89,13 +99,14 @@
   "variables": {
 
     "namePrefix": "[concat(parameters('serviceIdentifier'), parameters('environment'), parameters('environmentInstance'))]",
+    "sharedResourceGroupName": "[concat(variables('namePrefix'), '-', parameters('sharedResourcesAppName'))]",
     "appNamePrefix": "[concat(variables('namePrefix'), '-', parameters('appName'))]",
 
-    "servicePlanName": "[concat(variables('appNamePrefix'), '-asp-01')]",
-    "servicePlanId": "[resourceId('Microsoft.Web/serverfarms', variables('servicePlanName'))]",
+    "servicePlanName": "[concat(variables('namePrefix'), '-asp-01')]",
+    "servicePlanId": "[resourceId(variables('sharedResourceGroupName'), 'Microsoft.Web/serverfarms', variables('servicePlanName'))]",
 
-    "appInsightsName": "[concat(variables('appNamePrefix'), '-ai-01')]",
-    "appInsightsId": "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
+    "appInsightsName": "[concat(variables('namePrefix'), '-ai-', parameters('appInsightsInstance'))]",
+    "appInsightsId": "[resourceId(variables('sharedResourceGroupName'), 'Microsoft.Insights/components', variables('appInsightsName'))]",
 
     "storageAccountName": "[concat(variables('namePrefix'), parameters('appName'), 'sa01')]",
     "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
@@ -116,40 +127,6 @@
 
   },
   "resources": [
-
-    {
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2018-02-01",
-      "name": "[variables('servicePlanName')]",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "environment": "[parameters('environmentName')]",
-        "app": "[parameters('appName')]"
-      },
-      "sku": {
-        "name": "P1V2",
-        "tier": "PremiumV2"
-      },
-      "kind": "functionapp",
-      "properties": {
-        "name": "[variables('servicePlanName')]"
-      }
-    },
-
-    {
-      "apiVersion": "2018-05-01-preview",
-      "name": "[variables('appInsightsName')]",
-      "type": "Microsoft.Insights/components",
-      "location": "[resourceGroup().location]",
-      "kind": "other",
-      "tags": {
-        "environment": "[parameters('environmentName')]",
-        "app": "[parameters('appName')]"
-      },
-      "properties": {
-        "Application_Type": "other"
-      }
-    },
 
     {
       "apiVersion": "2019-06-01",
@@ -188,8 +165,6 @@
       "type": "Microsoft.Web/sites",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[variables('servicePlanId')]",
-        "[variables('appInsightsId')]",
         "[variables('storageAccountId')]"
       ],
       "tags": {
@@ -232,10 +207,6 @@
             },
             {
               "name": "WEBSITE_VNET_ROUTE_ALL",
-              "value": "1"
-            },
-            {
-              "name": "WEBSITE_RUN_FROM_PACKAGE",
               "value": "1"
             },
             {
