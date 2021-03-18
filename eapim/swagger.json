@@ -10,8 +10,9 @@
   "paths": {
     "/cdc-file/{urn}": {
       "get": {
+        "summary": "Get File",
         "description": "Accepts a urn value, and a type. Returns the requested value, or returns a 404.",
-        "operationId": "GetFile",
+        "operationId": "get-file",
         "parameters": [
           {
             "in": "header",
